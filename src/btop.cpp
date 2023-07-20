@@ -187,34 +187,9 @@ void term_resize(bool force) {
 	Term::refresh();
 	Config::unlock();
 
-	auto boxes = Config::getS("shown_boxes");
-	auto min_size = Term::get_min_size(boxes);
-
-	while (not force or (Term::width < min_size.at(0) or Term::height < min_size.at(1))) {
+	while (not force) {
 		sleep_ms(100);
-		if (Term::width < min_size.at(0) or Term::height < min_size.at(1)) {
-			cout << Term::clear << Global::bg_black << Global::fg_white << Mv::to((Term::height / 2) - 2, (Term::width / 2) - 11)
-				 << "Terminal size too small:" << Mv::to((Term::height / 2) - 1, (Term::width / 2) - 10)
-				 << " Width = " << (Term::width < min_size.at(1) ? Global::fg_red : Global::fg_green) << Term::width
-				 << Global::fg_white << " Height = " << (Term::height < min_size.at(0) ? Global::fg_red : Global::fg_green) << Term::height
-				 << Mv::to((Term::height / 2) + 1, (Term::width / 2) - 12) << Global::fg_white
-				 << "Needed for current config:" << Mv::to((Term::height / 2) + 2, (Term::width / 2) - 10)
-				 << "Width = " << min_size.at(0) << " Height = " << min_size.at(1) << flush;
-			bool got_key = false;
-			for (; not Term::refresh() and not got_key; got_key = Input::poll(10));
-			if (got_key) {
-				auto key = Input::get();
-				if (key == "q")
-					clean_quit(0);
-				else if (is_in(key, "1", "2", "3", "4")) {
-					Config::current_preset = -1;
-					Config::toggle_box(all_boxes.at(std::stoi(key) - 1));
-					boxes = Config::getS("shown_boxes");
-				}
-			}
-			min_size = Term::get_min_size(boxes);
-		}
-		else if (not Term::refresh()) break;
+		if (not Term::refresh()) break;
 	}
 
 	Input::interrupt = true;
