@@ -254,56 +254,9 @@ void term_resize(bool force) {
 	Term::refresh();
 	Config::unlock();
 
-	auto boxes = Config::getS("shown_boxes");
-	auto min_size = Term::get_min_size(boxes);
-	auto minWidth = min_size.at(0), minHeight = min_size.at(1);
-
-	while (not force or (Term::width < minWidth or Term::height < minHeight)) {
+	while (not force) {
 		sleep_ms(100);
-		if (Term::width < minWidth or Term::height < minHeight) {
-			int width = Term::width, height = Term::height;
-			cout << fmt::format("{clear}{bg_black}{fg_white}"
-					"{mv1}Terminal size too small:"
-					"{mv2} Width = {fg_width}{width} {fg_white}Height = {fg_height}{height}"
-					"{mv3}{fg_white}Needed for current config:"
-					"{mv4}Width = {minWidth} Height = {minHeight}",
-					"clear"_a = Term::clear, "bg_black"_a = Global::bg_black, "fg_white"_a = Global::fg_white,
-					"mv1"_a = Mv::to((height / 2) - 2, (width / 2) - 11),
-					"mv2"_a = Mv::to((height / 2) - 1, (width / 2) - 10),
-						"fg_width"_a = (width < minWidth ? Global::fg_red : Global::fg_green),
-						"width"_a = width,
-						"fg_height"_a = (height < minHeight ? Global::fg_red : Global::fg_green),
-						"height"_a = height,
-					"mv3"_a = Mv::to((height / 2) + 1, (width / 2) - 12),
-					"mv4"_a = Mv::to((height / 2) + 2, (width / 2) - 10),
-						"minWidth"_a = minWidth,
-						"minHeight"_a = minHeight
-			) << std::flush;
-
-			bool got_key = false;
-			for (; not Term::refresh() and not got_key; got_key = Input::poll(10));
-			if (got_key) {
-				auto key = Input::get();
-				if (key == "q")
-					clean_quit(0);
-				else if (key.size() == 1 and isint(key)) {
-					auto intKey = stoi(key);
-				#ifdef GPU_SUPPORT
-					if ((intKey == 0 and Gpu::count >= 5) or (intKey >= 5 and intKey - 4 <= Gpu::count)) {
-				#else
-					if (intKey > 0 and intKey < 5) {
-				#endif
-						auto box = all_boxes.at(intKey);
-						Config::current_preset = -1;
-						Config::toggle_box(box);
-						boxes = Config::getS("shown_boxes");
-					}
-				}
-			}
-			min_size = Term::get_min_size(boxes);
-			minWidth = min_size.at(0), minHeight = min_size.at(1);
-		}
-		else if (not Term::refresh()) break;
+		if (not Term::refresh()) break;
 	}
 
 	Input::interrupt();
