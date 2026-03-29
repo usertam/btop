@@ -294,7 +294,7 @@ namespace Config {
 	std::unordered_map<std::string_view, string> stringsTmp;
 
 	std::unordered_map<std::string_view, bool> bools = {
-		{"theme_background", true},
+		{"theme_background", false},
 		{"truecolor", true},
 		{"rounded_corners", true},
 		{"proc_reversed", false},
